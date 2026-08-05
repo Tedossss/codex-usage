@@ -1,7 +1,0 @@
-{
-  "name": "tideline",
-  "version": "1.0.0",
-  "description": "A status line for Claude Code that shows your 5-hour and 7-day usage limits, forecasts when you will run out, and counts the sessions you have open.",
-  "author": { "name": "Vasyl" },
-  "keywords": ["statusline", "usage", "rate-limits", "sessions"]
-}

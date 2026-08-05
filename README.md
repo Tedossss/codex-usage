@@ -1,96 +1,123 @@
 # Tideline
 
-A status line for Claude Code that answers the question you actually have:
-**how much is left, and am I about to run out.**
+A macOS menu bar app for Claude usage limits. A ring that fills as your 5-hour and 7-day
+windows fill, and a panel that says when they reset and which sessions are burning them.
 
 ```
-Opus 5   5H ██████▋█ 84% ↺3h13m   7D ████▌███ 58%   ↗ 5H full 17m   ctx 39%   ⧉ 3 ●1   hrm ⎇ main   $2.40
+menu bar    ◔ 26%
+
+panel       Tideline                          Max
+            5-hour                            26%
+            ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+            resets 16:30 · in 1h 59m
+
+            7-day                             21%
+            ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+            resets Mon 09:00 · in 4d 18h
+
+            Sessions            18 live · 2 working
+             ● hrm-3-80              …/GitHub/hrm-3
+             ○ hrm-6a                  …/GitHub/hrm
+             +12 more
+
+            Updated just now              ⟳   ⋯
 ```
-
-## What it shows
-
-| | |
-| --- | --- |
-| `5H` `7D` | the two Claude.ai rate-limit windows, as continuous meters with 1/8-cell resolution |
-| `↺` | time until that window resets |
-| `↗` | **pace forecast** — when your current burn rate would exhaust a window *before* it resets |
-| `ctx` | context window of this session |
-| `⧉` | Claude Code sessions alive on this machine, and how many are working right now |
-| | current directory or worktree, branch, session spend |
 
 ## The one design rule
 
-**Grey means fine.** The meters are monochrome until 60%, then yellow, then
-orange, then red. The pace forecast is not shown at all unless you are on course
-to hit a wall. A status line you have learned to ignore is a broken status line,
-so Tideline stays quiet until it has something to say.
+**Grey means fine.** The ring and the bars stay monochrome below 60%, then yellow, orange,
+red. While calm the menu bar icon is a *template image*, so macOS tints it with the menu
+bar's own appearance and it disappears into the system items — which is the point. Colour
+is an interruption, and it is spent only on a warning.
 
-Everything else follows from that: no icons that decorate rather than inform, no
-colour that does not encode a state, no segment that cannot be removed. When the
-terminal narrows, segments drop in reverse order of usefulness — spend first,
-the 5-hour meter last.
+The pace forecast follows the same rule: it does not appear unless your current burn rate
+would exhaust a window *before* that window resets. Its absence is the good news.
 
 ## Install
 
 ```sh
-git clone <this repo> ~/Desktop/projects/tideline
-~/Desktop/projects/tideline/bin/tideline install
+Scripts/build-app.sh          # builds, signs, installs to ~/Applications/Tideline.app
+open ~/Applications/Tideline.app
 ```
 
-`install` rewrites `statusLine` in `~/.claude/settings.json` and saves whatever
-was there before to `~/.claude/tideline/`. `uninstall` puts it back.
+Requires Swift 6 (Xcode 16+) and macOS 14+. No dependencies.
 
-Requires Python 3.8+ (macOS and most Linux ship it). No packages to install.
+On first launch macOS asks whether Tideline may read the `Claude Code-credentials` item in
+your keychain — that is the OAuth token it uses to call the usage endpoint. Click **Allow**.
+It asks again after a rebuild, because the ad-hoc code signature changes with the binary.
 
-Also install as a plugin for the `/tideline` skill, which turns "how much have I
-got left?" in chat into the expanded panel:
+Turn on **Open at login** from the `⋯` menu in the panel.
 
-```sh
-claude plugin marketplace add ~/Desktop/projects/tideline
-claude plugin install tideline@tideline
+## Where the numbers come from
+
+`GET https://api.anthropic.com/api/oauth/usage`, the same endpoint `/usage` uses inside
+Claude Code, authorised with the token already in your keychain. That is what makes the app
+standalone: it does not need a terminal open, and it does not touch your Claude Code status
+line.
+
+The response is not documented. Its shape, captured live:
+
+```json
+{ "five_hour": { "utilization": 26.0, "resets_at": "2026-08-05T13:30:00.191297+00:00" },
+  "seven_day": { "utilization": 21.0, "resets_at": "2026-08-10T06:00:00.191326+00:00" },
+  "seven_day_opus": null,
+  "limits": [ { "kind": "session", "percent": 26, "resets_at": "…" }, … ] }
 ```
 
-## Commands
+`Tests/` pins that shape. If Anthropic changes it, the tests fail rather than the app
+silently showing nothing. The last raw exchange is always written to
+`~/Library/Application Support/Tideline/last-response.json`.
 
-| | |
-| --- | --- |
-| `tideline panel` | the expanded view — both windows, pace, every live session |
-| `tideline preview` | every state, terminal width and bar style at once |
-| `tideline doctor` | what Tideline can and cannot see, and why |
-| `tideline config` | show options |
-| `tideline config theme=light bar_style=hairline` | set them |
-| `tideline install` / `uninstall` | wire it into settings, or unwire it |
+Sessions come from `~/.claude/sessions/*.json`, one file per session, named by pid. The
+files outlive their processes, so each pid is checked with `proc_pidpath` — note that
+`proc_name` is useless here, because Claude Code's executable is named after its version
+(`~/.local/share/claude/versions/2.1.222`) and so the process is called "2.1.222", never
+"claude".
 
-## How the forecast works
+## Behaviour worth knowing
 
-Every render samples `rate_limits` into `~/.claude/tideline/history.json`, at
-most once every 45 seconds, discarded when a window rolls over. A least-squares
-fit over the last two hours gives percent-per-second; that projects a time of
-exhaustion. It is shown only when three conditions hold: at least three samples
-spanning four minutes, the window is already past 12%, and the projected
-exhaustion lands *before* the window would have reset anyway. Otherwise the
-number would be technically true and practically noise.
-
-## Notes
-
-- `rate_limits` is only sent to status lines for Claude.ai Pro and Max accounts,
-  and only after the session's first reply. Before then those segments are
-  absent rather than zero.
-- Session counting matches live processes named `claude` against the pid in each
-  `~/.claude/sessions/*.json`; a pid alone is not enough, because pids get
-  recycled and the session files outlive their processes. The scan costs one
-  `ps` and is cached for three seconds.
-- A Claude Code plugin cannot declare the main status line — only `settings.json`
-  can — which is why `install` edits settings instead.
-- A render costs about 50 ms, on a five-second refresh.
+- **Polling** is every 90 seconds. On HTTP 429 it backs off, doubling to a 15-minute
+  ceiling and honouring `Retry-After`.
+- **A failed request never blanks the reading.** The last good value is cached to disk, so
+  a relaunch shows a number immediately, and the footer says how old it is and that it is
+  retrying. The windows only move while Claude is being used, so a slightly stale number is
+  still broadly true — an empty one never is.
+- **The forecast** needs three samples spanning four minutes and a window already past 12%.
+  Early in a window it is simply absent.
+- **The icon appears on the menu bar of whichever display is active.** If your laptop's
+  menu bar is full, macOS silently drops the newest item there; ⌘-drag the menu bar items
+  to reorder, or turn off **Show percentage** in the `⋯` menu to make Tideline narrower.
 
 ## Layout
 
 ```
-bin/tideline          launcher; resolves its own path, finds python3
-src/tideline.py       CLI: render, panel, install, uninstall, doctor, preview, config
-src/render.py         composes the line and the panel; width budget and degradation
-src/theme.py          Apple system palette, truecolor with a 256-colour fallback, meters
-src/data.py           config, live session discovery, usage history and forecast
-skills/tideline/      the /tideline skill
+Sources/Tideline/
+  Main.swift          AppKit entry point — see the comment there for why not SwiftUI's App
+  AppDelegate.swift   the status item and the popover
+  MenuBarIcon.swift   the ring, drawn with Core Graphics for pixel-exact 1x and 2x
+  PanelView.swift     the dropdown, SwiftUI hosted in an NSPopover
+  UsageStore.swift    polling, backoff, the on-disk cache of the last good reading
+  UsageAPI.swift      the request
+  Usage.swift         the response, and the reader that is pinned by tests
+  Keychain.swift      reading Claude Code's OAuth token
+  Sessions.swift      live session discovery
+  Forecast.swift      rolling history and the pace projection
+  Palette.swift       the grey-until-it-matters level scale
+Scripts/build-app.sh  assembles, signs and installs the bundle
+```
+
+## Development
+
+`swift test` covers the response reader, the level scale and the keychain shape.
+
+The bundle is assembled in a scratch directory rather than in the repo, because this
+checkout lives under an iCloud-synced Desktop and codesign refuses to sign anything
+carrying the xattrs that syncing attaches.
+
+To screenshot the panel without a human clicking it:
+
+```sh
+defaults write com.vasfal.tideline autoShowPanel -bool true
+open ~/Applications/Tideline.app     # panel opens after five seconds
+defaults delete com.vasfal.tideline autoShowPanel
 ```
