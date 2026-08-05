@@ -46,11 +46,13 @@ def read_json(path, fallback=None):
         return fallback
 
 
-def write_json(path, value):
+def write_json(path, value, indent=None):
     ensure_state_dir()
     tmp = f"{path}.tmp{os.getpid()}"
     with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(value, fh)
+        json.dump(value, fh, indent=indent)
+        if indent:
+            fh.write("\n")
     os.replace(tmp, path)
 
 

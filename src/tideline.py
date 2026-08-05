@@ -74,7 +74,7 @@ def cmd_install(_args):
     if previous and previous.get("command", "").find("tideline") == -1:
         stamp = time.strftime("%Y%m%d-%H%M%S")
         backup = os.path.join(data.STATE_DIR, f"settings.backup-{stamp}.json")
-        data.write_json(backup, settings)
+        data.write_json(backup, settings, indent=2)
         data.write_json(
             os.path.join(data.STATE_DIR, "previous-statusline.json"), previous
         )
@@ -86,7 +86,7 @@ def cmd_install(_args):
         "refreshInterval": 5,
         "padding": 0,
     }
-    data.write_json(SETTINGS_PATH, settings)
+    data.write_json(SETTINGS_PATH, settings, indent=2)
     print(f"  Tideline installed → {LAUNCHER} render")
     print("  It appears on your next interaction with Claude Code.")
     return 0
@@ -103,7 +103,7 @@ def cmd_uninstall(_args):
     else:
         settings.pop("statusLine", None)
         print("  Removed the status line.")
-    data.write_json(SETTINGS_PATH, settings)
+    data.write_json(SETTINGS_PATH, settings, indent=2)
     return 0
 
 
