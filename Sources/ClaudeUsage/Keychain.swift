@@ -12,11 +12,11 @@ enum KeychainError: LocalizedError {
         case .notFound:
             return "No Claude Code credentials in your keychain. Sign in with `claude` once."
         case .denied:
-            return "Keychain access was denied. Allow Tideline in Keychain Access."
+            return "Keychain access was denied. Allow Claude Usage in Keychain Access."
         case .unreadable(let status):
             return "Keychain returned \(status)."
         case .malformed:
-            return "The stored credentials are not in a shape Tideline recognises."
+            return "The stored credentials are not in a shape the app recognises."
         }
     }
 }

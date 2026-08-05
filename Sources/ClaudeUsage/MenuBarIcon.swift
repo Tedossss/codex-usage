@@ -1,25 +1,56 @@
 import AppKit
 
-/// Anthropic's own menu bar mark, copied from the installed Claude.app. It is their
-/// trademark: fine for identifying whose usage this is on your own machine, not something
-/// to redistribute.
+/// The Claude mark is Anthropic's trademark, so this repository ships none of it. The
+/// asset is borrowed at runtime from the copy of Claude.app already on the machine, and a
+/// plain asterisk is drawn when there is none.
 enum ClaudeMark {
+    private static let trayIcons = [
+        "/Applications/Claude.app/Contents/Resources/TrayIconTemplate@3x.png",
+        "/Applications/Claude.app/Contents/Resources/TrayIconTemplate@2x.png",
+        "/Applications/Claude.app/Contents/Resources/TrayIconTemplate.png",
+    ]
+
     static let shared: NSImage? = {
-        guard
-            let url = Bundle.main.url(forResource: "ClaudeMarkTemplate", withExtension: "png"),
-            let image = NSImage(contentsOf: url)
-        else { return nil }
-        image.isTemplate = true
-        return image
+        for path in trayIcons where FileManager.default.fileExists(atPath: path) {
+            if let image = NSImage(contentsOfFile: path) {
+                image.isTemplate = true
+                return image
+            }
+        }
+        return nil
     }()
 
     static func draw(in rect: CGRect, tint: NSColor?) {
-        guard let shared else { return }
-        shared.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+        if let shared {
+            shared.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+        } else {
+            drawAsterisk(in: rect)
+        }
         if let tint {
             tint.set()
             rect.fill(using: .sourceAtop)
         }
+    }
+
+    /// Twelve tapered rays, matching the silhouette closely enough to read at 14pt.
+    private static func drawAsterisk(in rect: CGRect) {
+        let centre = CGPoint(x: rect.midX, y: rect.midY)
+        let outer = rect.width / 2
+        let path = NSBezierPath()
+        for ray in 0..<12 {
+            let angle = Double(ray) / 12 * 2 * .pi
+            path.move(to: CGPoint(x: centre.x, y: centre.y))
+            path.line(
+                to: CGPoint(
+                    x: centre.x + outer * cos(angle),
+                    y: centre.y + outer * sin(angle)
+                )
+            )
+        }
+        path.lineWidth = rect.width * 0.13
+        path.lineCapStyle = .round
+        NSColor.black.setStroke()
+        path.stroke()
     }
 }
 

@@ -27,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         store.onUpdate = { [weak self] in self?.redraw() }
         redraw()
 
-        // `defaults write com.vasfal.tideline autoShowPanel -bool true` opens the panel a few
+        // `defaults write com.vasfal.claude-usage autoShowPanel -bool true` opens the panel a few
         // seconds after launch, so the layout can be screenshotted without a human click.
         if UserDefaults.standard.bool(forKey: "autoShowPanel") {
             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] _ in

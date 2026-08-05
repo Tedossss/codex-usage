@@ -126,7 +126,7 @@ struct PanelView: View {
                         Button("Copy diagnostics") { copyDiagnostics() }
                     }
                     Divider()
-                    Button("Quit Tideline") { NSApplication.shared.terminate(nil) }
+                    Button("Quit Claude Usage") { NSApplication.shared.terminate(nil) }
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 10, weight: .medium))

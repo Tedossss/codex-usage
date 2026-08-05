@@ -25,7 +25,7 @@ final class History {
 
     init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Tideline", isDirectory: true)
+            .appendingPathComponent("Claude Usage", isDirectory: true)
         try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
         url = support.appendingPathComponent("history.json")
         load()

@@ -15,7 +15,7 @@ enum UsageAPIError: LocalizedError {
         case .http(let code, let body):
             return "Usage request failed (\(code)). \(body.prefix(180))"
         case .unreadable:
-            return "Usage response was not in a shape Tideline recognises."
+            return "Usage response was not in a shape the app recognises."
         }
     }
 
@@ -41,7 +41,7 @@ struct UsageAPI {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Tideline/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("ClaudeUsage/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await URLSession.shared.data(for: request)
         let http = response as? HTTPURLResponse

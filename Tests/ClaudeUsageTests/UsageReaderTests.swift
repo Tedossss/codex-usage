@@ -1,10 +1,10 @@
 import Foundation
 import Testing
 
-@testable import Tideline
+@testable import ClaudeUsage
 
-/// Captured verbatim from a live `GET /api/oauth/usage`, trimmed of the fields Tideline
-/// does not read. Regenerate from ~/Library/Application Support/Tideline/last-response.json
+/// Captured verbatim from a live `GET /api/oauth/usage`, trimmed of the fields the app
+/// does not read. Regenerate from the app's last-response.json
 /// if the endpoint ever changes shape.
 private let liveResponse = Data(
     """

@@ -2,18 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "Tideline",
+    name: "ClaudeUsage",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "Tideline",
-            path: "Sources/Tideline",
+            name: "ClaudeUsage",
+            path: "Sources/ClaudeUsage",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "TidelineTests",
-            dependencies: ["Tideline"],
-            path: "Tests/TidelineTests",
+            name: "ClaudeUsageTests",
+            dependencies: ["ClaudeUsage"],
+            path: "Tests/ClaudeUsageTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

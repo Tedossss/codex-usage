@@ -5,7 +5,7 @@ import Foundation
 enum Diagnostics {
     static var directory: URL {
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Tideline", isDirectory: true)
+            .appendingPathComponent("Claude Usage", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
