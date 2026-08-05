@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Tideline launcher. Resolves its own location so the status line keeps working
+# no matter which directory Claude Code runs it from.
+set -u
+
+self="${BASH_SOURCE[0]}"
+while [ -L "$self" ]; do
+  dir="$(cd -P "$(dirname "$self")" && pwd)"
+  self="$(readlink "$self")"
+  case "$self" in /*) ;; *) self="$dir/$self" ;; esac
+done
+root="$(cd -P "$(dirname "$self")/.." && pwd)"
+
+py="$(command -v python3 2>/dev/null)"
+[ -x "$py" ] || py=/usr/bin/python3
+[ -x "$py" ] || { printf 'tideline: python3 not found'; exit 1; }
+
+exec "$py" "$root/src/tideline.py" "$@"
