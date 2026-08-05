@@ -27,16 +27,4 @@ enum Format {
         return "\(span(elapsed, short: true)) ago"
     }
 
-    static func home(_ path: String) -> String {
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        guard path.hasPrefix(home) else { return path }
-        return "~" + path.dropFirst(home.count)
-    }
-
-    static func tail(_ path: String, components: Int = 2) -> String {
-        let shortened = home(path)
-        let parts = shortened.split(separator: "/").map(String.init)
-        guard parts.count > components else { return shortened }
-        return "…/" + parts.suffix(components).joined(separator: "/")
-    }
 }

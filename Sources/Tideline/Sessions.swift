@@ -1,15 +1,9 @@
 import Darwin
 import Foundation
 
-struct ClaudeSession: Identifiable, Hashable {
-    let id: String
+struct ClaudeSession: Equatable {
     let pid: Int32
-    let name: String
-    let directory: String
-    let status: String
-    let updatedAt: Date
-
-    var isWorking: Bool { status == "busy" }
+    let isWorking: Bool
 }
 
 enum SessionScanner {
@@ -43,17 +37,10 @@ enum SessionScanner {
             guard updated > cutoff, isClaudeCLI(pid) else { continue }
 
             found.append(
-                ClaudeSession(
-                    id: raw["sessionId"] as? String ?? file.lastPathComponent,
-                    pid: pid,
-                    name: raw["name"] as? String ?? "session",
-                    directory: raw["cwd"] as? String ?? "",
-                    status: raw["status"] as? String ?? "idle",
-                    updatedAt: updated
-                )
+                ClaudeSession(pid: pid, isWorking: raw["status"] as? String == "busy")
             )
         }
-        return found.sorted { $0.updatedAt > $1.updatedAt }
+        return found.sorted { $0.pid < $1.pid }
     }
 
     /// `proc_name` is useless here: Claude Code's executable is named after its version

@@ -3,17 +3,17 @@ import SwiftUI
 
 struct PanelView: View {
     @Bindable var store: UsageStore
-    @State private var showsDiagnostics = false
+
+    private let gutter: CGFloat = 18
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             windows
             pace
-            sessions
-            footer
+            meta
         }
-        .frame(width: 300)
+        .frame(width: 292)
     }
 
     // MARK: -
@@ -22,111 +22,80 @@ struct PanelView: View {
         HStack(alignment: .firstTextBaseline) {
             Text("Tideline")
                 .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
             Spacer()
             if let plan = store.usage?.plan {
-                Text(plan.capitalized)
-                    .font(.system(size: 10, weight: .medium))
+                Text(plan.uppercased())
+                    .font(.system(size: 9, weight: .semibold))
+                    .tracking(0.6)
                     .foregroundStyle(.tertiary)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 14)
-        .padding(.bottom, 12)
+        .padding(.horizontal, gutter)
+        .padding(.top, 15)
+        .padding(.bottom, 18)
     }
 
     @ViewBuilder
     private var windows: some View {
         if let usage = store.usage {
-            VStack(spacing: 18) {
+            VStack(spacing: 20) {
                 if let five = usage.fiveHour { WindowRow(title: "5-hour", window: five) }
                 if let seven = usage.sevenDay { WindowRow(title: "7-day", window: seven) }
                 if let opus = usage.sevenDayOpus { WindowRow(title: "7-day Opus", window: opus) }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.horizontal, gutter)
+            .padding(.bottom, 18)
         } else {
-            unavailable
-        }
-    }
-
-    private var unavailable: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(store.failure == nil ? "Reading your usage…" : "No reading")
-                .font(.system(size: 12, weight: .medium))
-            if let failure = store.failure {
-                Text(failure)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(store.failure == nil ? "Reading your usage…" : "No reading yet")
+                    .font(.system(size: 12, weight: .medium))
+                if let failure = store.failure {
+                    Text(failure)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .padding(.horizontal, gutter)
+            .padding(.bottom, 18)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
     }
 
     @ViewBuilder
     private var pace: some View {
         if let projection = store.projection {
             let urgent = projection.exhaustedIn < 1800
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: "arrow.up.right")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(.system(size: 8.5, weight: .bold))
                 Text("\(projection.window) full in \(Format.span(projection.exhaustedIn))")
                     .font(.system(size: 11, weight: .medium))
+                Spacer()
                 Text(String(format: "%.2f%%/min", projection.perMinute))
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 10).monospacedDigit())
+                    .opacity(0.7)
             }
             .foregroundStyle(urgent ? Color.red : Color.orange)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.horizontal, gutter)
+            .padding(.bottom, 18)
         }
     }
 
-    @ViewBuilder
-    private var sessions: some View {
-        Divider().opacity(0.5)
-        VStack(alignment: .leading, spacing: 8) {
+    private var meta: some View {
+        VStack(spacing: 7) {
+            Divider().opacity(0.45)
             HStack {
                 Text("Sessions")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(summary)
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundStyle(.tertiary)
+                sessionCount
             }
+            .padding(.horizontal, gutter)
+            .padding(.top, 4)
 
-            if store.sessions.isEmpty {
-                Text("Nothing running")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-            } else {
-                ForEach(store.sessions.prefix(6)) { session in
-                    SessionRow(session: session)
-                }
-                if store.sessions.count > 6 {
-                    Text("+\(store.sessions.count - 6) more")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
-                        .padding(.leading, 14)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    private var summary: String {
-        let live = store.sessions.count
-        let working = store.workingCount
-        return working > 0 ? "\(live) live · \(working) working" : "\(live) live"
-    }
-
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Divider().opacity(0.5)
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 Text(footerStatus)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
@@ -159,9 +128,25 @@ struct PanelView: View {
                 .fixedSize()
                 .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, gutter)
+            .padding(.bottom, 11)
         }
+    }
+
+    private var sessionCount: some View {
+        HStack(spacing: 5) {
+            Text("\(store.sessions.count)")
+                .font(.system(size: 11, weight: .medium).monospacedDigit())
+            if store.workingCount > 0 {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 4.5, height: 4.5)
+                Text("\(store.workingCount) working")
+                    .font(.system(size: 11).monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .animation(.smooth(duration: 0.3), value: store.workingCount)
     }
 
     /// A stale reading is still worth showing, but never without saying it is stale.
@@ -194,26 +179,34 @@ private struct WindowRow: View {
     let window: Window
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("\(Int(window.percent.rounded()))")
-                    .font(.system(size: 25, weight: .regular, design: .rounded).monospacedDigit())
+                    .font(.system(size: 27, weight: .regular, design: .rounded).monospacedDigit())
                     .foregroundStyle(window.level.color)
-                + Text("%")
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(window.level == .calm ? .secondary : window.level.color)
+                    .contentTransition(.numericText(value: window.percent))
+                    .animation(.smooth(duration: 0.35), value: window.percent)
+                Text("%")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.tertiary)
+                    .padding(.leading, 1)
             }
 
             Meter(percent: window.percent, level: window.level)
 
             if let resetsAt = window.resetsAt {
-                Text("resets \(Format.clock(resetsAt)) · in \(Format.span(resetsAt.timeIntervalSinceNow))")
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(.tertiary)
+                // Two ends of the same fact, sharing the row above's left and right edges.
+                HStack {
+                    Text("resets \(Format.clock(resetsAt))")
+                    Spacer()
+                    Text("in \(Format.span(resetsAt.timeIntervalSinceNow))")
+                }
+                .font(.system(size: 10.5))
+                .foregroundStyle(.tertiary)
             }
         }
     }
@@ -226,34 +219,13 @@ private struct Meter: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.primary.opacity(0.09))
+                Capsule().fill(Color.primary.opacity(0.10))
                 Capsule()
                     .fill(level.color)
-                    .frame(width: geometry.size.width * min(1, max(0, percent / 100)))
+                    .frame(width: max(4, geometry.size.width * min(1, max(0, percent / 100))))
             }
         }
         .frame(height: 4)
-        .animation(.smooth(duration: 0.35), value: percent)
-    }
-}
-
-private struct SessionRow: View {
-    let session: ClaudeSession
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Circle()
-                .fill(session.isWorking ? Color.green : Color.secondary.opacity(0.35))
-                .frame(width: 5, height: 5)
-            Text(session.name)
-                .font(.system(size: 11, weight: .medium))
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Text(Format.tail(session.directory))
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
-                .truncationMode(.head)
-        }
+        .animation(.smooth(duration: 0.4), value: percent)
     }
 }
