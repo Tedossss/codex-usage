@@ -33,7 +33,7 @@ final class UsageStore {
     private var tick: Timer?
     private var sessionTimer: Timer?
 
-    private static let interval: TimeInterval = 90
+    private static let interval: TimeInterval = 120
     private static let maximumBackoff: TimeInterval = 900
     private var backoff: TimeInterval = 0
     private var nextFetch = Date.distantPast
@@ -43,8 +43,13 @@ final class UsageStore {
 
     init() {
         usage = cache.load()
+        // Relaunching should not cost a request. The endpoint rate limits, and a reading
+        // taken a minute ago is still the same reading.
+        if let fetchedAt = usage?.fetchedAt {
+            nextFetch = fetchedAt.addingTimeInterval(Self.interval)
+        }
         refreshSessions()
-        Task { await refresh() }
+        Task { await refreshIfDue() }
 
         tick = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refreshIfDue() }
