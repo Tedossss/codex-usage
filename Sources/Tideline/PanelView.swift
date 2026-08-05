@@ -19,8 +19,16 @@ struct PanelView: View {
     // MARK: -
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text("Tideline")
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            if let mark = ClaudeMark.shared {
+                Image(nsImage: mark)
+                    .resizable()
+                    .renderingMode(.template)
+                    .frame(width: 13, height: 13)
+                    .foregroundStyle(.secondary)
+                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 1.5 }
+            }
+            Text("Claude Usage")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.secondary)
             Spacer()
@@ -39,7 +47,7 @@ struct PanelView: View {
     @ViewBuilder
     private var windows: some View {
         if let usage = store.usage {
-            VStack(spacing: 20) {
+            VStack(spacing: 17) {
                 if let five = usage.fiveHour { WindowRow(title: "5-hour", window: five) }
                 if let seven = usage.sevenDay { WindowRow(title: "7-day", window: seven) }
                 if let opus = usage.sevenDayOpus { WindowRow(title: "7-day Opus", window: opus) }
@@ -186,12 +194,12 @@ private struct WindowRow: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("\(Int(window.percent.rounded()))")
-                    .font(.system(size: 27, weight: .regular, design: .rounded).monospacedDigit())
+                    .font(.system(size: 19, weight: .regular, design: .rounded).monospacedDigit())
                     .foregroundStyle(window.level.color)
                     .contentTransition(.numericText(value: window.percent))
                     .animation(.smooth(duration: 0.35), value: window.percent)
                 Text("%")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.tertiary)
                     .padding(.leading, 1)
             }

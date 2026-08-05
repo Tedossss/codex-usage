@@ -105,11 +105,7 @@ final class UsageStore {
     }
 
     var menuBarImage: NSImage {
-        MenuBarIcon.image(
-            percent: usage?.headline?.percent,
-            showsNumber: showsPercentage,
-            working: workingCount
-        )
+        MenuBarIcon.image(percent: usage?.headline?.percent, showsNumber: showsPercentage)
     }
 }
 

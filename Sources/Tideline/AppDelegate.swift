@@ -50,7 +50,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         store.refreshSessions()
-        Task { await store.refresh() }
+        // Opening the panel must not jump the backoff queue — the endpoint rate limits, and
+        // the ⟳ button is there for when the user really does want a fresh reading now.
+        Task { await store.refreshIfDue() }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
         popover.contentViewController?.view.window?.makeKey()
     }
