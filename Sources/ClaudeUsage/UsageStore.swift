@@ -11,6 +11,7 @@ final class UsageStore {
     private(set) var isRefreshing = false
 
     private static let percentageKey = "showsPercentage"
+    private static let trackedKey = "trackedWindow"
 
     /// Seeded from its declaration rather than assigned in `init`: `@Observable` rewrites
     /// stored properties into accessors, so an assignment in the initialiser would fire
@@ -20,6 +21,15 @@ final class UsageStore {
     {
         didSet {
             UserDefaults.standard.set(showsPercentage, forKey: Self.percentageKey)
+            onUpdate?()
+        }
+    }
+
+    var trackedWindow: TrackedWindow =
+        UserDefaults.standard.string(forKey: trackedKey).flatMap(TrackedWindow.init) ?? .fiveHour
+    {
+        didSet {
+            UserDefaults.standard.set(trackedWindow.rawValue, forKey: Self.trackedKey)
             onUpdate?()
         }
     }
@@ -105,7 +115,10 @@ final class UsageStore {
     }
 
     var menuBarImage: NSImage {
-        MenuBarIcon.image(percent: usage?.headline?.percent, showsNumber: showsPercentage)
+        MenuBarIcon.image(
+            percent: usage?.window(trackedWindow)?.percent,
+            showsNumber: showsPercentage
+        )
     }
 }
 

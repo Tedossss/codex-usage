@@ -31,9 +31,19 @@ private let liveResponse = Data(
     #expect(abs(resets.timeIntervalSince1970 - 1785936600.191297) < 0.001)
 }
 
-@Test func headlineTracksTheFullestWindow() throws {
+@Test func theMenuBarTracksTheChosenWindow() throws {
     let usage = try #require(UsageReader.parse(liveResponse))
-    #expect(usage.headline?.percent == 20)
+    #expect(usage.window(.fiveHour)?.percent == 18)
+    #expect(usage.window(.sevenDay)?.percent == 20)
+    #expect(usage.window(.fullest)?.percent == 20)
+}
+
+@Test func anUnreportedWindowFallsBackToTheFullest() throws {
+    let onlyFiveHour = Data(
+        #"{"five_hour":{"utilization":44.0,"resets_at":null},"seven_day":null,"limits":[]}"#.utf8
+    )
+    let usage = try #require(UsageReader.parse(onlyFiveHour))
+    #expect(usage.window(.sevenDay)?.percent == 44)
 }
 
 @Test func fallsBackToTheLimitsArrayWhenNamedObjectsAreMissing() throws {

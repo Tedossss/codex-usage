@@ -119,6 +119,11 @@ struct PanelView: View {
                 .disabled(store.isRefreshing)
 
                 Menu {
+                    Picker("Menu bar shows", selection: $store.trackedWindow) {
+                        ForEach(TrackedWindow.allCases) { Text($0.label).tag($0) }
+                    }
+                    .pickerStyle(.inline)
+                    Divider()
                     Toggle("Show percentage", isOn: $store.showsPercentage)
                     Toggle("Open at login", isOn: launchAtLogin)
                     if store.diagnostics != nil {

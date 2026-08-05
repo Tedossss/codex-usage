@@ -7,6 +7,25 @@ struct Window: Equatable, Codable {
     var level: Level { Level(percent: percent) }
 }
 
+/// Which window the menu bar tracks. `fullest` is honest about the worst number but moves
+/// between windows on its own, so a glance can mean two different things on two days —
+/// hence the fixed 5-hour default.
+enum TrackedWindow: String, CaseIterable, Identifiable {
+    case fiveHour
+    case sevenDay
+    case fullest
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .fiveHour: return "5-hour window"
+        case .sevenDay: return "7-day window"
+        case .fullest: return "Whichever is fullest"
+        }
+    }
+}
+
 struct Usage: Equatable, Codable {
     var fiveHour: Window?
     var sevenDay: Window?
@@ -14,12 +33,20 @@ struct Usage: Equatable, Codable {
     var plan: String?
     var fetchedAt: Date = Date()
 
-    /// The ring in the menu bar answers one question — how close am I to being cut off —
-    /// so it tracks whichever window is furthest along, not a fixed one.
-    var headline: Window? {
+    var fullest: Window? {
         [fiveHour, sevenDay, sevenDayOpus]
             .compactMap { $0 }
             .max { $0.percent < $1.percent }
+    }
+
+    /// Falls back to the fullest window when the chosen one is not reported, so the menu
+    /// bar shows a number rather than a dash on plans that lack it.
+    func window(_ tracked: TrackedWindow) -> Window? {
+        switch tracked {
+        case .fiveHour: return fiveHour ?? fullest
+        case .sevenDay: return sevenDay ?? fullest
+        case .fullest: return fullest
+        }
     }
 }
 

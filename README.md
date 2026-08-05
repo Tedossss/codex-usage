@@ -21,6 +21,11 @@ The menu bar item is the Claude mark plus the percentage — the mark says whose
 is, the number says how much. A progress ring beside the number would say the same thing
 twice, so the ring appears only when **Show percentage** is off.
 
+**The number is the 5-hour window**, always, so a glance means the same thing every day. It
+can be switched to the 7-day window, or to whichever window is fullest, under **Menu bar
+shows** in the `⋯` menu — but "whichever is fullest" is not the default on purpose: a
+number that silently changes which thing it measures is a number you have to double-check.
+
 ## Install
 
 Requires macOS 14+ and Swift 6 (Xcode 16+). No dependencies.
