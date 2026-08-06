@@ -23,4 +23,14 @@ install -m 0755 "$project_dir/scripts/codex-usage" "$bin_dir/codex-usage"
     PYTHONPATH="$install_dir" python3 -c 'from codex_usage.autostart import set_enabled; set_enabled(True)'
 )
 
+if command -v kpackagetool6 >/dev/null 2>&1; then
+    if kpackagetool6 --type Plasma/Applet --list 2>/dev/null | grep -q 'com.nfalach.codexusage'; then
+        kpackagetool6 --type Plasma/Applet --upgrade "$project_dir/plasmoid" >/dev/null
+    else
+        kpackagetool6 --type Plasma/Applet --install "$project_dir/plasmoid" >/dev/null
+    fi
+else
+    printf '%s\n' 'kpackagetool6 not found; the CLI/tray was installed, but the Plasma widget was skipped.' >&2
+fi
+
 printf 'Installed Codex Usage. Start it with: %s\n' "$bin_dir/codex-usage tray"

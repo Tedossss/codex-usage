@@ -46,12 +46,22 @@ The installer writes only to user-local XDG directories:
 - `~/.local/share/codex-usage`
 - `~/.local/bin/codex-usage`
 - `~/.config/autostart/codex-usage.desktop`
+- `~/.local/share/plasma/plasmoids/com.nfalach.codexusage`
 
 Log out and back in, or start it immediately:
 
 ```sh
 codex-usage tray
 ```
+
+The same installer registers a Plasma widget named **Codex Usage**. Add it to
+the panel or desktop through Plasma's widget picker. The compact view shows the
+shortest reported usage window; opening it shows reset times, tokens, and a
+button for the Codex dashboard.
+
+To update the widget after source changes, run `./install.sh` again. To remove
+the widget, use `kpackagetool6 --type Plasma/Applet --remove
+com.nfalach.codexusage`.
 
 ## CLI
 
