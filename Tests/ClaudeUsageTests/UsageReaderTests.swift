@@ -22,7 +22,14 @@ private let liveResponse = Data(
     let usage = try #require(UsageReader.parse(liveResponse))
     #expect(usage.fiveHour?.percent == 18)
     #expect(usage.sevenDay?.percent == 20)
-    #expect(usage.sevenDayOpus == nil)
+}
+
+@Test func readsPerModelWeeklyLimitsWithTheirServerGivenNames() throws {
+    let usage = try #require(UsageReader.parse(liveResponse))
+    #expect(usage.scoped.map(\.model) == ["Fable"])
+    #expect(usage.scoped.first?.window.percent == 0)
+    // A model you have not used yet reports no reset.
+    #expect(usage.scoped.first?.window.resetsAt == nil)
 }
 
 @Test func parsesMicrosecondTimestamps() throws {

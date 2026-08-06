@@ -12,6 +12,7 @@ final class UsageStore {
 
     private static let percentageKey = "showsPercentage"
     private static let trackedKey = "trackedWindow"
+    private static let scopedKey = "showsScopedWindows"
 
     /// Seeded from its declaration rather than assigned in `init`: `@Observable` rewrites
     /// stored properties into accessors, so an assignment in the initialiser would fire
@@ -32,6 +33,12 @@ final class UsageStore {
             UserDefaults.standard.set(trackedWindow.rawValue, forKey: Self.trackedKey)
             onUpdate?()
         }
+    }
+
+    var showsScopedWindows: Bool = UserDefaults.standard.object(forKey: scopedKey) as? Bool
+        ?? true
+    {
+        didSet { UserDefaults.standard.set(showsScopedWindows, forKey: Self.scopedKey) }
     }
 
     /// The status item is AppKit, so it is told to redraw rather than observing.

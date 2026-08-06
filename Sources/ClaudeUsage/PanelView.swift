@@ -50,7 +50,11 @@ struct PanelView: View {
             VStack(spacing: 17) {
                 if let five = usage.fiveHour { WindowRow(title: "5-hour", window: five) }
                 if let seven = usage.sevenDay { WindowRow(title: "7-day", window: seven) }
-                if let opus = usage.sevenDayOpus { WindowRow(title: "7-day Opus", window: opus) }
+                if store.showsScopedWindows {
+                    ForEach(usage.scoped) { scoped in
+                        WindowRow(title: "7-day \(scoped.model)", window: scoped.window)
+                    }
+                }
             }
             .padding(.horizontal, gutter)
             .padding(.bottom, 18)
@@ -125,6 +129,7 @@ struct PanelView: View {
                     .pickerStyle(.inline)
                     Divider()
                     Toggle("Show percentage", isOn: $store.showsPercentage)
+                    Toggle("Show per-model limits", isOn: $store.showsScopedWindows)
                     Toggle("Open at login", isOn: launchAtLogin)
                     if store.diagnostics != nil {
                         Divider()
@@ -211,16 +216,21 @@ private struct WindowRow: View {
 
             Meter(percent: window.percent, level: window.level)
 
-            if let resetsAt = window.resetsAt {
-                // Two ends of the same fact, sharing the row above's left and right edges.
-                HStack {
+            // Two ends of the same fact, sharing the row above's left and right edges. A
+            // per-model window reports no reset until the model is used, and an empty gap
+            // under the bar reads as something failing to render.
+            HStack {
+                if let resetsAt = window.resetsAt {
                     Text("resets \(Format.clock(resetsAt))")
                     Spacer()
                     Text("in \(Format.span(resetsAt.timeIntervalSinceNow))")
+                } else {
+                    Text(window.percent == 0 ? "not used yet" : "no reset scheduled")
+                    Spacer()
                 }
-                .font(.system(size: 10.5))
-                .foregroundStyle(.tertiary)
             }
+            .font(.system(size: 10.5))
+            .foregroundStyle(.tertiary)
         }
     }
 }

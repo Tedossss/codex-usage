@@ -3,7 +3,7 @@
 A macOS menu bar app for your Claude usage limits: how much of the 5-hour and 7-day windows
 you have spent, when they reset, and how many Claude Code sessions are burning them.
 
-<img src="docs/panel.png" width="620" alt="The Claude Usage menu bar item showing 32%, and its panel showing the 5-hour window at 32%, the 7-day window at 22%, their reset times, and 18 live sessions with 1 working">
+<img src="docs/panel.png" width="380" alt="The Claude Usage menu bar item showing 7%, and its panel showing the 5-hour window at 7%, the 7-day window at 25%, a 7-day Fable window at 0% marked not used yet, and 18 live sessions with 1 working">
 
 No terminal has to be open, and it does not touch your Claude Code status line.
 
@@ -16,6 +16,11 @@ Colour is an interruption, and it is spent only on a warning.
 
 The pace forecast obeys the same rule: it does not appear unless your current burn rate
 would exhaust a window *before* that window resets. Its absence is the good news.
+
+Some plans carry a weekly limit for one model on top of the shared one — today that is
+Fable. Those rows are labelled with the name the server gives them, so a new model needs no
+code change, and **Show per-model limits** in the `⋯` menu turns them off for anyone who
+does not use them.
 
 The menu bar item is the Claude mark plus the percentage — the mark says whose usage this
 is, the number says how much. A progress ring beside the number would say the same thing
@@ -53,10 +58,13 @@ else, and the token is never written to disk or logged.
 The endpoint is undocumented. Its shape, captured live:
 
 ```json
-{ "five_hour": { "utilization": 32.0, "resets_at": "2026-08-05T13:29:00.191297+00:00" },
-  "seven_day": { "utilization": 22.0, "resets_at": "2026-08-10T06:00:00.191326+00:00" },
-  "seven_day_opus": null,
-  "limits": [ { "kind": "session", "percent": 32, "resets_at": "…" }, … ] }
+{ "five_hour": { "utilization": 7.0,  "resets_at": "2026-08-06T12:00:00.198123+00:00" },
+  "seven_day": { "utilization": 25.0, "resets_at": "2026-08-10T06:00:00.198149+00:00" },
+  "limits": [
+    { "kind": "session",       "percent": 7,  "resets_at": "…", "scope": null },
+    { "kind": "weekly_all",    "percent": 25, "resets_at": "…", "scope": null },
+    { "kind": "weekly_scoped", "percent": 0,  "resets_at": null,
+      "scope": { "model": { "display_name": "Fable" } } } ] }
 ```
 
 `Tests/` pins that shape, so if Anthropic changes it the tests fail rather than the app

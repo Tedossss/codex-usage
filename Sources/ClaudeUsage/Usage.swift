@@ -26,16 +26,24 @@ enum TrackedWindow: String, CaseIterable, Identifiable {
     }
 }
 
+/// A weekly limit that applies to one model rather than all of them — today that is Fable.
+/// The name comes from the server, so a new model needs no code change.
+struct ScopedWindow: Equatable, Codable, Identifiable {
+    let model: String
+    let window: Window
+
+    var id: String { model }
+}
+
 struct Usage: Equatable, Codable {
     var fiveHour: Window?
     var sevenDay: Window?
-    var sevenDayOpus: Window?
+    var scoped: [ScopedWindow] = []
     var plan: String?
     var fetchedAt: Date = Date()
 
     var fullest: Window? {
-        [fiveHour, sevenDay, sevenDayOpus]
-            .compactMap { $0 }
+        ([fiveHour, sevenDay].compactMap { $0 } + scoped.map(\.window))
             .max { $0.percent < $1.percent }
     }
 
@@ -77,10 +85,25 @@ enum UsageReader {
         var usage = Usage()
         usage.fiveHour = window(root["five_hour"]) ?? byKind["session"]
         usage.sevenDay = window(root["seven_day"]) ?? byKind["weekly_all"]
-        usage.sevenDayOpus = window(root["seven_day_opus"])
+        usage.scoped = scopedWindows(in: root)
 
         guard usage.fiveHour != nil || usage.sevenDay != nil else { return nil }
         return usage
+    }
+
+    private static func scopedWindows(in root: [String: Any]) -> [ScopedWindow] {
+        (root["limits"] as? [[String: Any]] ?? []).compactMap { entry in
+            guard
+                entry["kind"] as? String == "weekly_scoped",
+                let percent = (entry["percent"] as? NSNumber)?.doubleValue,
+                let scope = entry["scope"] as? [String: Any],
+                let model = (scope["model"] as? [String: Any])?["display_name"] as? String
+            else { return nil }
+            return ScopedWindow(
+                model: model,
+                window: Window(percent: percent, resetsAt: date(entry["resets_at"]))
+            )
+        }
     }
 
     private static func window(_ node: Any?) -> Window? {
