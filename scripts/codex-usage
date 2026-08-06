@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+exec python3 "$data_home/codex-usage/run.py" "$@"
