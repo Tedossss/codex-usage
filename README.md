@@ -56,8 +56,12 @@ codex-usage tray
 
 The same installer registers a Plasma widget named **Codex Usage**. Add it to
 the panel or desktop through Plasma's widget picker. The compact view shows the
-shortest reported usage window; opening it shows reset times, tokens, and a
-button for the Codex dashboard.
+remaining percentage for the shortest reported usage window; opening it shows
+reset times, a compact visual summary, and optional token/process details.
+
+Widget settings are separate from the popup: open the widget context menu and
+choose **Configure Codex Usage** to change the refresh interval or hide the
+extra details row. The popup intentionally has no action-button clutter.
 
 To update the widget after source changes, run `./install.sh` again. To remove
 the widget, use `kpackagetool6 --type Plasma/Applet --remove

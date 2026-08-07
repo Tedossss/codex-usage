@@ -32,6 +32,17 @@ class PlasmoidPackageTests(unittest.TestCase):
         self.assertIn("capturedAt = parsed.captured_at", qml)
         self.assertIn("trackedWindow()", qml)
 
+    def test_widget_uses_remaining_usage_and_has_separate_settings(self):
+        qml = (self.root / "contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertIn("100 - window.used_percent", qml)
+        self.assertIn("remainingPercent", qml)
+        self.assertIn("plasmoid.configuration.refreshInterval", qml)
+        self.assertTrue((self.root / "contents/config/config.qml").is_file())
+        self.assertTrue((self.root / "contents/ui/config/ConfigGeneral.qml").is_file())
+
+        config_model = (self.root / "contents/config/config.qml").read_text(encoding="utf-8")
+        self.assertIn('source: "config/ConfigGeneral.qml"', config_model)
+
 
 if __name__ == "__main__":
     unittest.main()
