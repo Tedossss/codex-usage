@@ -4,11 +4,18 @@ A small KDE/Wayland tray indicator for Codex usage limits. It is an Arch Linux
 port inspired by [vasfal/claude-usage](https://github.com/vasfal/claude-usage),
 adapted to Codex's local session data instead of Claude credentials and APIs.
 
+The project includes both a lightweight system-tray app and a native Plasma 6
+widget. The widget is designed for a fast glance: it reports how much usage is
+left, while the popup keeps reset times and optional details close at hand.
+
 The tray label shows the shortest usage window currently reported by Codex. Its
 menu shows every available primary/secondary window (commonly 5-hour and 7-day),
 reset times, plan, the newest session token counters, and the number of live
 Codex processes. Window names come from `window_minutes`; the app does not
 assume that `primary` always means 5 hours.
+
+Codex records `used_percent`. The UI displays the more useful remaining value:
+`100 - used_percent`. For example, `6% used` appears as `94% left`.
 
 ## Privacy and data source
 
@@ -37,7 +44,9 @@ sudo pacman -S --needed python python-gobject gtk3 libayatana-appindicator
 ## Install
 
 ```sh
-cd /home/n_falach/codex-usage
+git clone --branch feature/arch-codex-usage \
+  https://github.com/Tedossss/codex-usage.git
+cd codex-usage
 ./install.sh
 ```
 
@@ -67,6 +76,14 @@ To update the widget after source changes, run `./install.sh` again. To remove
 the widget, use `kpackagetool6 --type Plasma/Applet --remove
 com.nfalach.codexusage`.
 
+To remove the user-local tray/autostart files as well:
+
+```sh
+rm -f ~/.local/bin/codex-usage
+rm -rf ~/.local/share/codex-usage
+rm -f ~/.config/autostart/codex-usage.desktop
+```
+
 ## CLI
 
 ```sh
@@ -77,6 +94,13 @@ codex-usage --codex-home /path/to/.codex status
 ```
 
 `CODEX_HOME` is respected automatically.
+
+## Project layout
+
+- `codex_usage/` — Python reader, formatter, CLI, and tray application
+- `plasmoid/` — Plasma 6 widget and its separate settings page
+- `tests/` — parser, CLI, and widget contract tests
+- `install.sh` — user-local installation and Plasma package registration
 
 ## Development
 
@@ -91,6 +115,8 @@ python -m compileall -q codex_usage
 
 - Values can be stale while Codex is closed because this app deliberately does
   not access account credentials or undocumented endpoints.
+- The local event stream may report a different window from the web dashboard;
+  the widget labels the window duration so that distinction is visible.
 - Live-session counting uses `/proc` and counts Codex executables owned by the
   current user. Sandboxes or containers can hide host processes.
 - The tray requires a StatusNotifier/AppIndicator host. KDE Plasma provides one
