@@ -1,5 +1,7 @@
 # Codex Usage for Arch Linux
 
+[![CI](https://github.com/Tedossss/codex-usage/actions/workflows/ci.yml/badge.svg)](https://github.com/Tedossss/codex-usage/actions/workflows/ci.yml)
+
 A small KDE/Wayland tray indicator for Codex usage limits. It is an Arch Linux
 port inspired by [vasfal/claude-usage](https://github.com/vasfal/claude-usage),
 adapted to Codex's local session data instead of Claude credentials and APIs.
@@ -44,8 +46,7 @@ sudo pacman -S --needed python python-gobject gtk3 libayatana-appindicator
 ## Install
 
 ```sh
-git clone --branch feature/arch-codex-usage \
-  https://github.com/Tedossss/codex-usage.git
+git clone https://github.com/Tedossss/codex-usage.git
 cd codex-usage
 ./install.sh
 ```
@@ -124,6 +125,7 @@ python -m compileall -q codex_usage
 
 ## Licence and attribution
 
-MIT. The original macOS concept and repository are copyright (c) 2026 Vasyl
-Falach. This Arch/Codex implementation contains no Anthropic or OpenAI artwork
+MIT. The Arch/Codex implementation is copyright (c) 2026 Nazar Falach. The
+original macOS concept and repository are copyright (c) 2026 Vasyl Falach; the
+macOS Swift app was removed from this fork and lives upstream. This Arch/Codex implementation contains no Anthropic or OpenAI artwork
 and is not affiliated with either company.
