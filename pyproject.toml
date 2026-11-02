@@ -1,0 +1,13 @@
+[project]
+name = "codex-usage-arch"
+version = "0.1.0"
+description = "Local Codex usage tray indicator for Arch Linux"
+requires-python = ">=3.11"
+license = "MIT"
+
+[project.scripts]
+codex-usage = "codex_usage.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
